@@ -1,0 +1,27 @@
+// Recipe
+{
+  "name": "test",
+  "type": "ALL_GRAIN",
+  "style": "Porter",
+  "units": "METRIC",
+  "fermentables": [
+      {"name": "Fermentable1",
+        "type": "test1",
+        "color": "iepa",
+        "ppg": 3},
+      {"name": "Fermentable2",
+        "type": "test2",
+        "color": "iepa",
+        "ppg": 2}
+  ],
+  "hops": [{"name": "hop1", "country":"Spain", "form": "weird"}],
+  "yeasts": [{"name": "yeast1", "laboratory": "Lab1", "productId": "dfasdafds", "minTemp": 10, "maxTemp": 20}]
+}
+
+// Hop
+{
+  "name": "hop1",
+  "country":"Spain",
+  "form": "weird"
+}
+
