@@ -18,7 +18,7 @@ public class Yeast {
 
     private String productId;
 
-    private float attenuation;
+    private String attenuation;
 
     private float minTemp;
 
@@ -52,11 +52,11 @@ public class Yeast {
         this.productId = productId;
     }
 
-    public float getAttenuation() {
+    public String getAttenuation() {
         return attenuation;
     }
 
-    public void setAttenuation(float attenuation) {
+    public void setAttenuation(String attenuation) {
         this.attenuation = attenuation;
     }
 

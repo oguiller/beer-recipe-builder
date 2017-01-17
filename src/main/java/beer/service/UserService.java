@@ -4,6 +4,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
+import java.util.Optional;
 
 import beer.entity.User;
 import beer.repository.UserRepository;
@@ -18,7 +19,7 @@ public class UserService {
         return userRepository.save(user);
     }
 
-    public List<User> findByUserName(String username){
+    public Optional<User> getByUsername(String username){
         return userRepository.findByUsername(username);
     }
 

@@ -18,8 +18,6 @@ public class Fermentable {
 
     private String color;
 
-    private Integer ppg; // points/ pound/ gallon
-
     public long getId() {
         return id;
     }
@@ -48,11 +46,4 @@ public class Fermentable {
         this.color = color;
     }
 
-    public Integer getPpg() {
-        return ppg;
-    }
-
-    public void setPpg(Integer ppg) {
-        this.ppg = ppg;
-    }
 }

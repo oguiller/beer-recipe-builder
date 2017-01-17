@@ -12,7 +12,7 @@ import org.springframework.web.bind.annotation.RestController;
 import beer.entity.Beer;
 
 @RestController
-@RequestMapping("/beer")
+@RequestMapping("/api/beer")
 public class BeerController {
 
     private static final String template = "Beer Type is: %s!";

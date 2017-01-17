@@ -5,12 +5,14 @@ import com.fasterxml.jackson.annotation.JsonView;
 
 import javax.persistence.*;
 import javax.validation.constraints.NotNull;
+import java.util.List;
 
 @JsonIgnoreProperties(ignoreUnknown = true)
+@Table(name = "APP_USER")
 @Entity
 public class User {
 
-    @Id
+    @Id @Column(name="ID")
     @GeneratedValue(strategy= GenerationType.AUTO)
     private Long id;
 
@@ -26,6 +28,10 @@ public class User {
     private String username;
 
     private String password;
+
+    @OneToMany(fetch = FetchType.EAGER)
+    @JoinColumn(name="APP_USER_ID", referencedColumnName="ID")
+    private List<UserRole> roles;
 
     public Long getId() {
         return id;
@@ -79,4 +85,11 @@ public class User {
         this.mail = mail;
     }
 
+    public List<UserRole> getRoles() {
+        return roles;
+    }
+
+    public void setRoles(List<UserRole> roles) {
+        this.roles = roles;
+    }
 }
