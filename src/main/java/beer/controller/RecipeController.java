@@ -1,19 +1,34 @@
 package beer.controller;
 
 import beer.dto.Error;
+import beer.entity.Fermentable;
 import beer.entity.Recipe;
-import beer.repository.RecipeRepository;
+import beer.resource.FermentableResource;
+import beer.resource.HopResource;
+import beer.resource.RecipeResource;
+import beer.resource.YeastResource;
 import beer.service.RecipeService;
 import beer.util.ControllerUtils;
+import org.apache.commons.collections4.CollectionUtils;
 import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.hateoas.Link;
+import org.springframework.hateoas.Resources;
+import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
-import javax.validation.ConstraintViolation;
 import javax.validation.ConstraintViolationException;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.stream.Collectors;
+
+import static org.springframework.hateoas.mvc.ControllerLinkBuilder.linkTo;
+import static org.springframework.hateoas.mvc.ControllerLinkBuilder.methodOn;
 
 @RequestMapping("/api/recipe")
 @RestController
@@ -32,12 +47,51 @@ public class RecipeController {
     }
 
     @GetMapping(value = "/{id}", produces = MediaType.APPLICATION_JSON_UTF8_VALUE)
-    public @ResponseBody Map findOne(@PathVariable long id){
+    public
+    @ResponseBody
+    HttpEntity<Object> findOne(@PathVariable long id) {
         Map result = new HashMap();
         Recipe recipe = recipeService.findOne(id);
         result.put("recipe", recipe);
 
-        return result;
+        RecipeResource recipeResource = new RecipeResource(recipe);
+        recipeResource.add(linkTo(methodOn(RecipeController.class).findOne(recipe.getId())).withSelfRel());
+
+        if (!CollectionUtils.isEmpty(recipe.getHops())) {
+            Link link = new Link("/api/recipe/" + recipe.getId() + "/hops/");
+            List list = recipe.getHops().stream().map(hop -> {
+                Link link1 = linkTo(methodOn(HopController.class).findOne(hop.getId())).withSelfRel();
+                HopResource hopResource = new HopResource(hop);
+                hopResource.add(link1);
+                return hopResource;
+            }).collect(Collectors.toList());
+
+            recipeResource.embedResource("hops", new Resources<HopResource>(list, link));
+        }
+
+        if (!CollectionUtils.isEmpty(recipe.getFermentables())) {
+            Link link = new Link("/api/recipe/" + recipe.getId() + "/fermentables/");
+            List list = recipe.getFermentables().stream().map((Fermentable fermentable) -> {
+                Link link1 = linkTo(methodOn(FermentableController.class).findOne(fermentable.getId())).withSelfRel();
+                FermentableResource fermentableResource = new FermentableResource(fermentable);
+                fermentableResource.add(link1);
+                return fermentableResource;
+            }).collect(Collectors.toList());
+            recipeResource.embedResource("fermentables", new Resources<FermentableResource>(list, link));
+        }
+
+        if (!CollectionUtils.isEmpty(recipe.getYeasts())) {
+            Link link = new Link("/api/recipe/" + recipe.getId() + "/yeasts/");
+            List list = recipe.getYeasts().stream().map(yeast -> {
+                Link link1 = linkTo(methodOn(YeastController.class).findOne(yeast.getId())).withSelfRel();
+                YeastResource yeastResource = new YeastResource(yeast);
+                yeastResource.add(link1);
+                return yeastResource;
+            }).collect(Collectors.toList());
+            recipeResource.embedResource("yeasts", new Resources<YeastResource>(list, link));
+        }
+
+        return new ResponseEntity<Object>(recipeResource, HttpStatus.OK);
     }
 
     @PostMapping(consumes = MediaType.APPLICATION_JSON_UTF8_VALUE, produces = MediaType.APPLICATION_JSON_UTF8_VALUE)
