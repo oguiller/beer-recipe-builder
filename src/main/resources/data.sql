@@ -3,7 +3,7 @@ insert into USER_ROLE(APP_USER_ID, ROLE) values(1, 'ADMIN');
 insert into USER_ROLE(APP_USER_ID, ROLE) values(1, 'PREMIUM_MEMBER');
 
 
-insert into RECIPE(ID, NAME, STYLE, TYPE, UNITS) values (1, 'I.P.A', 'Indian Pale Ale', 'Pale Ale', 'METRIC');
+INSERT INTO RECIPE (ID, NAME, STYLE, TYPE, UNITS) VALUES (1, 'I.P.A', 'Indian Pale Ale', 'ALL_GRAIN', 'METRIC');
 insert into HOP(ID, NAME, COUNTRY) values(1,'Cascade', 'USA');
 
 insert into FERMENTABLE(ID, COLOR, NAME, TYPE) values (1, '1.7 SRM', 'Flaked Barley', 'Grain');
