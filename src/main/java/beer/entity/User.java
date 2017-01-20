@@ -1,7 +1,7 @@
 package beer.entity;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
-import com.fasterxml.jackson.annotation.JsonView;
 
 import javax.persistence.*;
 import javax.validation.constraints.NotNull;
@@ -27,15 +27,12 @@ public class User {
 
     private String username;
 
+    @JsonIgnore
     private String password;
 
     @OneToMany(fetch = FetchType.EAGER)
     @JoinColumn(name="APP_USER_ID", referencedColumnName="ID")
     private List<UserRole> roles;
-
-    public Long getId() {
-        return id;
-    }
 
     public String getFirstName() {
         return firstName;
@@ -92,4 +89,5 @@ public class User {
     public void setRoles(List<UserRole> roles) {
         this.roles = roles;
     }
+
 }

@@ -2,7 +2,7 @@ package beer.endpoint;
 
 import beer.entity.User;
 import beer.exceptions.InvalidJwtToken;
-import beer.model.*;
+import beer.model.UserContext;
 import beer.model.token.JwtToken;
 import beer.model.token.JwtTokenFactory;
 import beer.model.token.RawAccessJwtToken;
@@ -54,9 +54,10 @@ public class RefreshTokenEndpoint {
         }
 
         String subject = refreshToken.getSubject();
-        User user = userService.getByUsername(subject).orElseThrow(() -> new UsernameNotFoundException("User not found: " + subject));
+        User user = userService.getByUsername(subject).orElseThrow(() -> new UsernameNotFoundException("UserResource not found: " + subject));
 
-        if (user.getRoles() == null) throw new InsufficientAuthenticationException("User has no roles assigned");
+        if (user.getRoles() == null)
+            throw new InsufficientAuthenticationException("UserResource has no roles assigned");
         List<GrantedAuthority> authorities = user.getRoles().stream()
                 .map(authority -> new SimpleGrantedAuthority(authority.getRole().authority()))
                 .collect(Collectors.toList());
