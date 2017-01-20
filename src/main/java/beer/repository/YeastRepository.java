@@ -1,10 +1,10 @@
 package beer.repository;
 
-import beer.entity.Hop;
+
+import beer.entity.Yeast;
 import org.springframework.data.repository.CrudRepository;
 import org.springframework.stereotype.Repository;
 
 @Repository
-public interface HopRepository extends CrudRepository<Hop, Long> {
+public interface YeastRepository extends CrudRepository<Yeast, Long> {
 }
-
