@@ -1,29 +1,32 @@
 package beer.controller;
 
 import beer.entity.Yeast;
-import beer.repository.YeastRepository;
+import beer.resource.YeastResource;
+import beer.service.YeastService;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpEntity;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
-import java.util.HashMap;
-import java.util.Map;
+import static org.springframework.hateoas.mvc.ControllerLinkBuilder.linkTo;
+import static org.springframework.hateoas.mvc.ControllerLinkBuilder.methodOn;
 
 @RestController
 @RequestMapping("/api/yeast")
 public class YeastController {
 
     @Autowired
-    YeastRepository yeastRepository;
+    YeastService yeastService;
 
     @GetMapping(value = "/{id}", produces = MediaType.APPLICATION_JSON_UTF8_VALUE)
     public
     @ResponseBody
-    Map findOne(@PathVariable long id) {
-        Map result = new HashMap();
-        Yeast yeast = yeastRepository.findOne(id);
-        result.put("yeast", yeast);
-
-        return result;
+    HttpEntity<Object> get(@PathVariable long id) {
+        Yeast yeast = yeastService.findOne(id);
+        YeastResource yeastResource = new YeastResource(yeast);
+        yeastResource.add(linkTo(methodOn(YeastController.class).get(((Yeast) yeast).getId())).withSelfRel());
+        return new ResponseEntity<>(yeastResource, HttpStatus.OK);
     }
 }

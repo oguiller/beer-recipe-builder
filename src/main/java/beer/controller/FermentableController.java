@@ -1,29 +1,32 @@
 package beer.controller;
 
 import beer.entity.Fermentable;
-import beer.repository.FermentableRepository;
+import beer.resource.FermentableResource;
+import beer.service.FermentableService;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpEntity;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
-import java.util.HashMap;
-import java.util.Map;
+import static org.springframework.hateoas.mvc.ControllerLinkBuilder.linkTo;
+import static org.springframework.hateoas.mvc.ControllerLinkBuilder.methodOn;
 
 @RestController
 @RequestMapping("/api/fermentable")
 public class FermentableController {
 
     @Autowired
-    FermentableRepository fermentableRepository;
+    FermentableService fermentableService;
 
     @GetMapping(value = "/{id}", produces = MediaType.APPLICATION_JSON_UTF8_VALUE)
     public
     @ResponseBody
-    Map findOne(@PathVariable long id) {
-        Map result = new HashMap();
-        Fermentable fermentable = fermentableRepository.findOne(id);
-        result.put("fermentable", fermentable);
-
-        return result;
+    HttpEntity<Object> get(@PathVariable long id) {
+        Fermentable fermentable = fermentableService.findOne(id);
+        FermentableResource fermentableResource = new FermentableResource(fermentable);
+        fermentableResource.add(linkTo(methodOn(FermentableController.class).get(((Fermentable) fermentable).getId())).withSelfRel());
+        return new ResponseEntity<Object>(fermentableResource, HttpStatus.OK);
     }
 }

@@ -9,7 +9,8 @@ import java.util.*;
 
 public class ControllerUtils {
 
-    public static void buildGenericError(Map result, Exception e) {
+    public static Map buildGenericError(Exception e) {
+        Map result = new HashMap();
         Error error = new Error();
         Map errors = new HashMap();
         errors.put("domain", "global");
@@ -22,9 +23,12 @@ public class ControllerUtils {
         error.setCode(HttpStatus.INTERNAL_SERVER_ERROR.value());
         error.setMessage(HttpStatus.INTERNAL_SERVER_ERROR.getReasonPhrase());
         result.put(Error.ERROR, error);
+
+        return result;
     }
 
-    public static void buildConstraintError(Map result, ConstraintViolationException cve) {
+    public static Map buildConstraintError(ConstraintViolationException cve) {
+        Map result = new HashMap();
         Error error = new Error();
         Map errors = new HashMap();
         errors.put("domain", "global");
@@ -42,5 +46,7 @@ public class ControllerUtils {
         error.setCode(HttpStatus.BAD_REQUEST.value());
         error.setMessage(HttpStatus.BAD_REQUEST.getReasonPhrase());
         result.put(Error.ERROR, error);
+
+        return result;
     }
 }

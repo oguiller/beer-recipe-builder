@@ -38,31 +38,44 @@ public class RecipeController {
     private RecipeService recipeService;
 
     @GetMapping(produces = MediaType.APPLICATION_JSON_UTF8_VALUE)
-    public @ResponseBody Map findAll(){
-        Map result = new HashMap();
+    public
+    @ResponseBody
+    HttpEntity<Object> getAllRecipes() {
         Iterable recipes = recipeService.findAll();
-        result.put("recipes", recipes);
+        List<RecipeResource> resources = new ArrayList<>();
+        recipes.forEach(recipe -> {
+            Link recipesLink = linkTo(methodOn(RecipeController.class).getAllRecipes()).withRel("allRecipes");
+            RecipeResource recipeResource = getRecipeResource((Recipe) recipe);
+            recipeResource.add(recipesLink);
+            resources.add(recipeResource);
+        });
 
-        return result;
+        return new ResponseEntity<Object>(resources, HttpStatus.OK);
     }
 
     @GetMapping(value = "/{id}", produces = MediaType.APPLICATION_JSON_UTF8_VALUE)
     public
     @ResponseBody
-    HttpEntity<Object> findOne(@PathVariable long id) {
+    HttpEntity<Object> get(@PathVariable long id) {
         Map result = new HashMap();
         Recipe recipe = recipeService.findOne(id);
         result.put("recipe", recipe);
 
+        RecipeResource recipeResource = getRecipeResource(recipe);
+
+        return new ResponseEntity<Object>(recipeResource, HttpStatus.OK);
+    }
+
+    private RecipeResource getRecipeResource(Recipe recipe) {
         RecipeResource recipeResource = new RecipeResource(recipe);
-        recipeResource.add(linkTo(methodOn(RecipeController.class).findOne(recipe.getId())).withSelfRel());
+        recipeResource.add(linkTo(methodOn(RecipeController.class).get(recipe.getId())).withSelfRel());
 
         if (!CollectionUtils.isEmpty(recipe.getHops())) {
-            Link link = new Link("/api/recipe/" + recipe.getId() + "/hops/");
+            Link link = linkTo(methodOn(RecipeController.class).getHops(recipe.getId())).withSelfRel();
             List list = recipe.getHops().stream().map(hop -> {
-                Link link1 = linkTo(methodOn(HopController.class).findOne(hop.getId())).withSelfRel();
+                Link self = linkTo(methodOn(HopController.class).get(hop.getId())).withSelfRel();
                 HopResource hopResource = new HopResource(hop);
-                hopResource.add(link1);
+                hopResource.add(self);
                 return hopResource;
             }).collect(Collectors.toList());
 
@@ -70,49 +83,48 @@ public class RecipeController {
         }
 
         if (!CollectionUtils.isEmpty(recipe.getFermentables())) {
-            Link link = new Link("/api/recipe/" + recipe.getId() + "/fermentables/");
+            Link self = linkTo(methodOn(RecipeController.class).getFermentables(recipe.getId())).withSelfRel();
             List list = recipe.getFermentables().stream().map((Fermentable fermentable) -> {
-                Link link1 = linkTo(methodOn(FermentableController.class).findOne(fermentable.getId())).withSelfRel();
+                Link link1 = linkTo(methodOn(FermentableController.class).get(fermentable.getId())).withSelfRel();
                 FermentableResource fermentableResource = new FermentableResource(fermentable);
                 fermentableResource.add(link1);
                 return fermentableResource;
             }).collect(Collectors.toList());
-            recipeResource.embedResource("fermentables", new Resources<FermentableResource>(list, link));
+            recipeResource.embedResource("fermentables", new Resources<FermentableResource>(list, self));
         }
 
         if (!CollectionUtils.isEmpty(recipe.getYeasts())) {
-            Link link = new Link("/api/recipe/" + recipe.getId() + "/yeasts/");
+            Link self = linkTo(methodOn(RecipeController.class).getYeasts(recipe.getId())).withSelfRel();
             List list = recipe.getYeasts().stream().map(yeast -> {
-                Link link1 = linkTo(methodOn(YeastController.class).findOne(yeast.getId())).withSelfRel();
+                Link link1 = linkTo(methodOn(YeastController.class).get(yeast.getId())).withSelfRel();
                 YeastResource yeastResource = new YeastResource(yeast);
                 yeastResource.add(link1);
                 return yeastResource;
             }).collect(Collectors.toList());
-            recipeResource.embedResource("yeasts", new Resources<YeastResource>(list, link));
+            recipeResource.embedResource("yeasts", new Resources<YeastResource>(list, self));
         }
-
-        return new ResponseEntity<Object>(recipeResource, HttpStatus.OK);
+        return recipeResource;
     }
 
     @PostMapping(consumes = MediaType.APPLICATION_JSON_UTF8_VALUE, produces = MediaType.APPLICATION_JSON_UTF8_VALUE)
     public
     @ResponseBody
-    Map save(@RequestBody Recipe recipe) {
-        Map result = new HashMap();
+    HttpEntity<Object> save(@RequestBody Recipe recipe) {
         try {
             Recipe savedRecipe = recipeService.save(recipe);
-            result.put("recipe", savedRecipe);
+            RecipeResource recipeResource = getRecipeResource(savedRecipe);
+            return new ResponseEntity<Object>(recipeResource, HttpStatus.OK);
         } catch (ConstraintViolationException cve) {
-            ControllerUtils.buildConstraintError(result, cve);
+            return new ResponseEntity<Object>(ControllerUtils.buildConstraintError(cve), HttpStatus.BAD_REQUEST);
         } catch (Exception e) {
-            ControllerUtils.buildGenericError(result, e);
-        } finally {
-            return result;
+            return new ResponseEntity<Object>(ControllerUtils.buildGenericError(e), HttpStatus.BAD_REQUEST);
         }
     }
 
     @PutMapping(value = "/{id}", consumes = MediaType.APPLICATION_JSON_UTF8_VALUE, produces = MediaType.APPLICATION_JSON_VALUE)
-    public Map update(@PathVariable long id, @RequestBody Recipe recipe) {
+    public
+    @ResponseBody
+    HttpEntity<Object> update(@PathVariable long id, @RequestBody Recipe recipe) {
         Recipe recipe1 = recipeService.findOne(id);
         Map result = new HashMap();
 
@@ -129,32 +141,88 @@ public class RecipeController {
             error.setCode(HttpStatus.NOT_FOUND.value());
             error.setMessage(HttpStatus.NOT_FOUND.getReasonPhrase());
             result.put(Error.ERROR, error);
-            return result;
+            return new ResponseEntity<Object>(result, HttpStatus.BAD_REQUEST);
         }
 
         try {
             BeanUtils.copyProperties(recipe, recipe1);
             Recipe updatedRecipe = recipeService.save(recipe1);
-            result.put("recipe", updatedRecipe);
-            result.put("code", HttpStatus.OK);
-            result.put("message", HttpStatus.OK.getReasonPhrase());
+            RecipeResource recipeResource = getRecipeResource(updatedRecipe);
+            return new ResponseEntity<Object>(recipeResource, HttpStatus.OK);
         } catch (ConstraintViolationException cve) {
-            ControllerUtils.buildConstraintError(result, cve);
+            return new ResponseEntity<Object>(ControllerUtils.buildConstraintError(cve), HttpStatus.BAD_REQUEST);
         } catch (Exception e) {
-            ControllerUtils.buildGenericError(result, e);
-        } finally {
-            return result;
+            return new ResponseEntity<Object>(ControllerUtils.buildGenericError(e), HttpStatus.BAD_REQUEST);
         }
 
     }
 
+    @GetMapping(value = "/{id}/hops", produces = MediaType.APPLICATION_JSON_UTF8_VALUE)
+    public
+    @ResponseBody
+    HttpEntity<Object> getHops(@PathVariable long id) {
+        Recipe recipe = recipeService.findOne(id);
+        List<HopResource> hopResources = new ArrayList<>();
+
+        if (!CollectionUtils.isEmpty(recipe.getHops())) {
+            hopResources = recipe.getHops().stream().map(hop -> {
+                Link link1 = linkTo(methodOn(HopController.class).get(hop.getId())).withSelfRel();
+                HopResource hopResource = new HopResource(hop);
+                hopResource.add(link1);
+                return hopResource;
+            }).collect(Collectors.toList());
+        }
+
+        return new ResponseEntity<>(hopResources, HttpStatus.OK);
+    }
+
+    @GetMapping(value = "/{id}/fermentables", produces = MediaType.APPLICATION_JSON_UTF8_VALUE)
+    public
+    @ResponseBody
+    HttpEntity<Object> getFermentables(@PathVariable long id) {
+        Recipe recipe = recipeService.findOne(id);
+        List<FermentableResource> fermentableResources = new ArrayList<>();
+
+        if (!CollectionUtils.isEmpty(recipe.getFermentables())) {
+            fermentableResources = recipe.getFermentables().stream().map(fermentable -> {
+                Link link1 = linkTo(methodOn(FermentableController.class).get(fermentable.getId())).withSelfRel();
+                FermentableResource fermentableResource = new FermentableResource(fermentable);
+                fermentableResource.add(link1);
+                return fermentableResource;
+            }).collect(Collectors.toList());
+        }
+
+        return new ResponseEntity<>(fermentableResources, HttpStatus.OK);
+    }
+
+    @GetMapping(value = "/{id}/yeasts", produces = MediaType.APPLICATION_JSON_UTF8_VALUE)
+    public
+    @ResponseBody
+    HttpEntity<Object> getYeasts(@PathVariable long id) {
+        Recipe recipe = recipeService.findOne(id);
+        List<YeastResource> yeastResources = new ArrayList<>();
+
+        if (!CollectionUtils.isEmpty(recipe.getYeasts())) {
+            yeastResources = recipe.getYeasts().stream().map(yeast -> {
+                Link link = linkTo(methodOn(YeastController.class).get(yeast.getId())).withSelfRel();
+                YeastResource yeastResource = new YeastResource(yeast);
+                yeastResource.add(link);
+                return yeastResource;
+            }).collect(Collectors.toList());
+        }
+
+        return new ResponseEntity<>(yeastResources, HttpStatus.OK);
+    }
+
     @DeleteMapping(value = "/{id}")
-    public Map delete(@PathVariable long id) {
+    public
+    @ResponseBody
+    HttpEntity<Object> delete(@PathVariable long id) {
         Map result = new HashMap();
         recipeService.delete(id);
         result.put("code", HttpStatus.OK.value());
         result.put("message", HttpStatus.OK.getReasonPhrase());
-        return result;
+        return new ResponseEntity<Object>(result, HttpStatus.OK);
     }
 
 }
