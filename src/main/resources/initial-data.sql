@@ -2,7 +2,6 @@ insert into APP_USER(ID,  FIRST_NAME, SURNAME, USERNAME,  PASSWORD, MAIL, PHONE)
 insert into USER_ROLE(APP_USER_ID, ROLE) values(1, 'ADMIN');
 insert into USER_ROLE(APP_USER_ID, ROLE) values(1, 'PREMIUM_MEMBER');
 
-
 INSERT INTO RECIPE (ID, NAME, STYLE, TYPE, UNITS) VALUES (1, 'I.P.A', 'Indian Pale Ale', 'ALL_GRAIN', 'METRIC');
 insert into HOP(ID, NAME, COUNTRY) values(1,'Cascade', 'USA');
 
