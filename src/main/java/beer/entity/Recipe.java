@@ -1,10 +1,13 @@
 package beer.entity;
 
 import javax.persistence.*;
+import java.io.Serializable;
 import java.util.Set;
 
 @Entity
-public class Recipe {
+public class Recipe implements Serializable {
+
+    private static final long serialVersionUID = 3L;
 
     @Id
     @GeneratedValue(strategy = GenerationType.AUTO)

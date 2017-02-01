@@ -5,12 +5,15 @@ import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 
 import javax.persistence.*;
 import javax.validation.constraints.NotNull;
+import java.io.Serializable;
 import java.util.List;
 
 @JsonIgnoreProperties(ignoreUnknown = true)
 @Table(name = "APP_USER")
 @Entity
-public class User {
+public class User implements Serializable {
+
+    private static final long serialVersionUID = 2L;
 
     @Id @Column(name="ID")
     @GeneratedValue(strategy= GenerationType.AUTO)
