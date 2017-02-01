@@ -125,10 +125,10 @@ public class RecipeController {
     public
     @ResponseBody
     HttpEntity<Object> update(@PathVariable long id, @RequestBody Recipe recipe) {
-        Recipe recipe1 = recipeService.findOne(id);
+        Recipe existingRecipe = recipeService.findOne(id);
         Map result = new HashMap();
 
-        if (recipe1 == null) {
+        if (existingRecipe == null) {
             beer.dto.Error error = new beer.dto.Error();
             Map errors = new HashMap();
             errors.put("domain", "global");
@@ -145,8 +145,8 @@ public class RecipeController {
         }
 
         try {
-            BeanUtils.copyProperties(recipe, recipe1);
-            Recipe updatedRecipe = recipeService.save(recipe1);
+            BeanUtils.copyProperties(recipe, existingRecipe);
+            Recipe updatedRecipe = recipeService.save(existingRecipe);
             RecipeResource recipeResource = getRecipeResource(updatedRecipe);
             return new ResponseEntity<Object>(recipeResource, HttpStatus.OK);
         } catch (ConstraintViolationException cve) {
